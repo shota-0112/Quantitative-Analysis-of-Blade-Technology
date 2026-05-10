@@ -26,8 +26,9 @@ ggplot(data = my_data, aes(x = angle)) +
     x = "角度",
     y = "度数"
   ) +
-  # X軸の目盛りを明示的に指定（50, 60...）
+  # X軸とy軸の目盛りを明示的に指定（50, 60...）
   scale_x_continuous(breaks = seq(50, 90, by = 5)) +
+  scale_y_continuous(breaks = seq(0, 35, by = 5)) +
   # 背景をシンプルなデザインにする
   theme_minimal() +
   # タイトルを中央揃えにする（お好みで）
