@@ -1,0 +1,61 @@
+# 必要なパッケージの読み込み
+library(ggplot2)
+library(showtext)
+library(flexmix)
+
+# フォントの設定
+font_add("my_meiryo", "meiryo.ttc")
+showtext_auto()
+
+# 1. データの読み込み（パスは環境に合わせてください）
+my_data <- read.csv("C:/Users/iwash/OneDrive/デスクトップ/修士論文/bladelist_for_R.csv")
+
+# ==========================================
+# 分析: flexmixによるGMM（EICを基準にしたクラスター数推定）
+# ==========================================
+cat("\n【EICを用いた最適なクラスター数の探索】\n")
+
+# 乱数の固定
+set.seed(123)
+
+# 1〜5クラスターのモデルを計算
+flex_models <- stepFlexmix(angle ~ 1, data = my_data, k = 1:5, model = FLXMCnorm1())
+
+# 各クラスター数のEICを取得して表示
+eic_values <- EIC(flex_models)
+cat("\n各クラスター数（1〜5）のEIC値:\n")
+print(eic_values)
+
+# ★★★ ここを修正しました ★★★
+# EICの値が一番小さい（最小値の）モデルの番号を取得
+best_index <- which.min(eic_values)
+
+# その番号を使って、ベストなモデルを確実に取り出す
+best_model <- getModel(flex_models, which = best_index)
+
+# ベストモデルのサマリーを表示
+cat("\n【ベストモデル（最小EIC）のサマリー】\n")
+print(best_model)
+
+# 各データがどのクラスターに分類されたかを元のデータに保存
+my_data$Cluster_EIC <- as.factor(clusters(best_model))
+
+
+# ==========================================
+# 視覚化: EICで推定されたクラスターの色分けヒストグラム
+# ==========================================
+ggplot(data = my_data, aes(x = angle, fill = Cluster_EIC)) +
+  geom_histogram(color = "black", alpha = 0.7, bins = 30, position = "identity") +
+  labs(
+    title = "交差角度のヒストグラム（EIC基準による分類）",
+    x = "交差角度",
+    y = "度数",
+    fill = "クラスター\n(EIC最適)"
+  ) +
+  theme_minimal() +
+  theme(
+    text = element_text(family = "my_meiryo"),
+    plot.title = element_text(hjust = 0.5, face = "bold", margin = margin(b = 15)),
+    axis.title.x = element_text(margin = margin(t = 12)),
+    axis.title.y = element_text(margin = margin(r = 12))
+  )
