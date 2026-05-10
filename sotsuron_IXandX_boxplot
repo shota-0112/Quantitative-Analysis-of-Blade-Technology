@@ -23,18 +23,25 @@ df$Group <- factor(df$Group, levels = c("Ⅸ層", "Ⅹ層"))
 
 # 4. ggplot2による箱ひげ図の作成
 p <- ggplot(df, aes(x = Group, y = angle, fill = Group)) +
-  geom_boxplot() +
+  geom_boxplot(width = 0.5, outlier.shape = 1) +
+  # 平均値を「×」で表示 (shape=4 が ×印)
+  stat_summary(fun = mean, geom = "point", shape = 4, size = 3, color = "black") +
+  # y軸の範囲を50-90、5度刻みに設定
+  scale_y_continuous(limits = c(50, 90), breaks = seq(50, 90, by = 5)) +
   # 色の指定
   scale_fill_manual(values = c("Ⅸ層" = "skyblue", "Ⅹ層" = "orange")) +
+  # 凡例の見た目を長方形に変更
+  guides(fill = guide_legend(override.aes = list(linetype = 0, shape = NA))) +
   # ラベルの設定
-  labs(title = "層別 angle の比較",
-       x = "出土層",
-       y = "角度 (angle)",
-       fill = "層区分") +
+  labs(x = "layer",
+       y = "angle",
+       ) +
   # テーマと凡例の位置調整
   theme_minimal() +
   theme(
-    legend.position = "top",           # 凡例を上部に配置
+    aspect.ratio=1.2,
+    axis.title.x = element_text(margin = margin(t = 10), size = 12),
+    axis.title.y = element_text(margin = margin(r = 10), size = 12),
     text = element_text(family = "my_meiryo"),
   )
 
