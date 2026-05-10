@@ -1,0 +1,127 @@
+# パッケージの読み込み
+library(ggplot2)
+library(flexmix) # mclustの代わりにflexmixを読み込む
+library(showtext)
+library(dplyr)
+
+# フォントの設定（文字化け対策）
+font_add("my_meiryo", "meiryo.ttc")
+showtext_auto()
+
+# 1. データの読み込み（パスはご自身の環境に合わせてください）
+my_data <- read.csv("C:/Users/iwash/OneDrive/デスクトップ/修士論文/bladelist_for_R.csv")
+
+# ==========================================
+# 分析1: 視覚的な確認（カーネル密度推定）
+# ==========================================
+ggplot(data = my_data, aes(x = angle)) +
+  geom_density(fill = "skyblue", alpha = 0.5, color = "black") +
+  labs(
+    title = "交差角度の確率密度分布",
+    x = "交差角度",
+    y = "密度"
+  ) +
+  theme_minimal() +
+  theme(
+    text = element_text(family = "my_meiryo"),
+    plot.title = element_text(hjust = 0.5, face = "bold"),
+    axis.title.x = element_text(margin = margin(t = 12)),
+    axis.title.y = element_text(margin = margin(r = 12))
+  )
+
+# ==========================================
+# 分析2: 混合正規分布モデル（flexmix）によるEIC基準の集団数推定
+# ==========================================
+cat("\n【EICを用いた最適なクラスター数の探索】\n")
+
+# 乱数の固定（結果の再現性を確保するため）
+set.seed(123)
+
+# 交差角度(angle)のデータを使い、1〜5クラスターのモデルを計算
+flex_models <- stepFlexmix(angle ~ 1, data = my_data, k = 1:5, model = FLXMCnorm1())
+
+# 各クラスター数のEICを取得して表示
+eic_values <- EIC(flex_models)
+cat("\n各クラスター数（1〜5）のEIC値:\n")
+print(eic_values)
+
+# EICの値が一番小さい（最小値の）モデルの番号を取得
+best_index <- which.min(eic_values)
+
+# その番号を使って、ベストなモデルを確実に取り出す
+best_model <- getModel(flex_models, which = best_index)
+
+# ベストモデルのサマリーを表示
+cat("\n【ベストモデル（最小EIC）のサマリー】\n")
+print(best_model)
+
+# 各データがどのクラスターに分類されたかを元のデータに保存
+# （後続のコードで使えるよう列名を「Cluster」にしています）
+my_data$Cluster <- as.factor(clusters(best_model))
+
+# 集団ごとに色分けしたヒストグラムを描いて確認
+ggplot(data = my_data, aes(x = angle, fill = Cluster)) +
+  geom_histogram(color = "black", alpha = 0.7, bins = 30, position = "identity") +
+  labs(
+    title = "交差角度のヒストグラム（EIC基準で推定された集団）",
+    x = "交差角度",
+    y = "度数",
+    fill = "クラスター"
+  ) +
+  theme_minimal() +
+  theme(
+    text = element_text(family = "my_meiryo"),
+    plot.title = element_text(hjust = 0.5, face = "bold"),
+    axis.title.x = element_text(margin = margin(t = 12)),
+    axis.title.y = element_text(margin = margin(r = 12))
+  )
+
+
+# ==========================================
+# グループ分け（データの前処理）
+# ==========================================
+# データを層（Group）に分ける
+my_data <- my_data %>%
+  mutate(
+    Group = case_when(
+      number >= 1 & number <= 155   ~ "Ⅸ層 (No.1〜155)",
+      number >= 156 & number <= 357 ~ "Ⅹ層 (No.156〜357)",  
+      TRUE                          ~ "その他"
+    )
+  ) %>%
+  filter(Group != "その他")
+
+# ==========================================
+# 分析3: 層（Group）とクラスターのクロス集計
+# ==========================================
+cat("\n【層ごとのクラスター内訳（クロス集計表）】\n")
+
+# table関数を使って、縦にGroup、横にClusterの表を作成
+cross_table <- table(my_data$Group, my_data$Cluster)
+print(cross_table)
+
+# 割合（パーセンテージ）での確認
+cat("\n【層ごとのクラスター構成割合（行ごとの％）】\n")
+print(prop.table(cross_table, margin = 1) * 100)
+
+
+# ==========================================
+# 視覚化: 積み上げ棒グラフによる構成比の比較
+# ==========================================
+ggplot(data = my_data, aes(x = Group, fill = Cluster)) +
+  geom_bar(position = "fill", color = "black", alpha = 0.8, width = 0.4) +
+  scale_y_continuous(labels = scales::percent) +
+  labs(
+    title = "各層における交差角度クラスターの構成比",
+    x = "段階",
+    y = "割合",
+    fill = "クラスター"
+  ) +
+  theme_minimal() +
+  theme(
+    text = element_text(family = "my_meiryo"),
+    plot.title = element_text(hjust = 0.5, face = "bold", margin = margin(b = 15)),
+    axis.title.x = element_text(margin = margin(t = 12)),
+    axis.title.y = element_text(margin = margin(r = 12)),
+    aspect.ratio = 1.5
+  )
