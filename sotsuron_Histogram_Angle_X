@@ -1,0 +1,27 @@
+library(ggplot2)
+library(showtext) # 追加したパッケージを読み込む
+
+# 1. WindowsのメイリオフォントをRに登録する
+# font_add("Rで使う好きな名前", "Windowsに入っているフォントのファイル名")
+font_add("my_meiryo", "meiryo.ttc")
+
+# 2. showtextの機能をオンにする（これ以降のグラフでフォントが有効になります）
+showtext_auto()
+
+# 3. データの準備
+my_data <- read.csv("C:/Users/iwash/OneDrive/デスクトップ/卒業論文/sotsuron_bladelist_for_R.csv")
+filtered_data <- subset(my_data, number >= 78 & number <= 121)
+
+# 4. グラフの描画
+ggplot(data = filtered_data, aes(x = angle)) +
+  geom_histogram(aes(y = after_stat(count / sum(count))), breaks = seq(50, 90, by = 2.5), fill = "orange", color = "black") +
+  scale_x_continuous(breaks = seq(50, 90, by = 5)) +
+  labs(x = "交差角度", y = "相対度数") +
+  theme_minimal() +
+  theme(
+    # 先ほど font_add で付けた名前 "my_meiryo" を指定する
+    text = element_text(family = "my_meiryo"),
+    plot.title = element_text(hjust = 0.5),
+    axis.title.x = element_text(margin = margin(t = 12)),
+    axis.title.y = element_text(margin = margin(r = 12)),
+  )
