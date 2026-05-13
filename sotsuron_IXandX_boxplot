@@ -23,6 +23,7 @@ df$Group <- factor(df$Group, levels = c("Ⅸ層", "Ⅹ層"))
 
 # 4. ggplot2による箱ひげ図の作成
 p <- ggplot(df, aes(x = Group, y = angle, fill = Group)) +
+  stat_boxplot(geom = "errorbar", width = 0.2) +
   geom_boxplot(width = 0.5, outlier.shape = 1) +
   # 平均値を「×」で表示 (shape=4 が ×印)
   stat_summary(fun = mean, geom = "point", shape = 4, size = 3, color = "black") +
