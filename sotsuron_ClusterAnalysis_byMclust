@@ -72,8 +72,8 @@ library(dplyr)
 my_data <- my_data %>%
   mutate(
     Group = case_when(
-      number >= 1 & number <= 77   ~ "Ⅸ層 (No.1〜155)",
-      number >= 78 & number <= 121 ~ "Ⅹ層 (No.156〜357)",  
+      number >= 1 & number <= 77   ~ "Ⅸ層",
+      number >= 78 & number <= 121 ~ "Ⅹ層",  
       TRUE                          ~ "その他"
     )
   ) %>%
@@ -105,9 +105,6 @@ ggplot(data = my_data, aes(x = Group, fill = Cluster)) +
   scale_y_continuous(labels = scales::percent) +
   
   labs(
-    title = "各層における交差角度クラスターの構成比",
-    x = "段階",
-    y = "割合",
     fill = "クラスター"
   ) +
   theme_minimal() +
