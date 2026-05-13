@@ -1,0 +1,66 @@
+# 必要なライブラリの読み込み
+library(ggplot2)
+library(showtext) 
+
+# フォント登録
+font_add("my_meiryo", "meiryo.ttc")
+showtext_auto()
+
+# 1. データの読み込み
+file_path <- "C:/Users/iwash/OneDrive/デスクトップ/卒業論文/sotsuron_bladelist_for_R.csv"
+df <- read.csv(file_path)
+
+# 2. 層（Group）の定義と順序設定
+df$Group <- ifelse(df$number >= 1 & df$number <= 77, "Ⅸ層",
+                   ifelse(df$number >= 78 & df$number <= 121, "Ⅹ層", NA))
+df <- na.omit(df)
+df$Group <- factor(df$Group, levels = c("Ⅸ層", "Ⅹ層"))
+
+# --- ① 散布図の作成 (0から開始するように修正) ---
+p1 <- ggplot(df, aes(x = width, y = length, color = Group, shape = Group)) +
+  geom_point(size = 2.5) +
+  # 形状と色の指定
+  scale_shape_manual(values = c("Ⅸ層" = 17, "Ⅹ層" = 16)) +
+  scale_color_manual(values = c("Ⅸ層" = "skyblue", "Ⅹ層" = "orange")) +
+  
+  # 軸の範囲設定を1箇所にまとめ、expand=c(0,0)を追加して0から開始させる
+  scale_x_continuous(limits = c(0, 50), breaks = seq(0, 50, by = 10), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0, 140), breaks = seq(0, 140, by = 10), expand = c(0, 0)) +
+  
+  coord_fixed(ratio = 1) + 
+  
+  labs(x = "幅(mm)",
+       y = "長さ(mm)",
+       color = "layer", shape = "layer") +
+  theme_minimal() +
+  theme(
+    legend.position = "right",
+    axis.title.x = element_text(margin = margin(t = 15)),
+    axis.title.y = element_text(margin = margin(r = 15)),
+    text = element_text(family = "my_meiryo"),
+    # 0地点の線を強調したい場合はパネルのグリッドを調整
+    panel.grid.minor = element_blank()
+  )
+
+# --- ② ratio の箱ひげ図の作成 (エラー回避のため修正) ---
+p2 <- ggplot(df, aes(x = Group, y = ratio, fill = Group)) +
+  stat_boxplot(geom = "errorbar", width = 0.2) +
+  geom_boxplot(width = 0.5, outlier.shape = 1) + 
+  stat_summary(fun = mean, geom = "point", shape = 4, size = 3, color = "black") +
+  scale_fill_manual(values = c("Ⅸ層" = "skyblue", "Ⅹ層" = "orange")) +
+  guides(fill = guide_legend(override.aes = list(linetype = 0, shape = NA))) +
+  scale_y_continuous(limits = c(0, 6), breaks = seq(0, 6, by = 0.5), expand = c(0, 0)) +
+  # title = x = ... となっていた部分を修正
+  labs(x = "layer", y = "ratio", fill = "層区分") +
+  theme_minimal() +
+  theme(
+    legend.position = "right",
+    aspect.ratio = 1.5,
+    axis.title.x = element_text(margin = margin(t = 15), size = 12),
+    axis.title.y = element_text(margin = margin(r = 15), size = 12),
+    text = element_text(family = "my_meiryo"),
+  )
+
+# グラフの表示
+print(p1)
+print(p2)
