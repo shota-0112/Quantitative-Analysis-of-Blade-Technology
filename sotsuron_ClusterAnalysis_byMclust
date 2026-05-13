@@ -50,9 +50,8 @@ my_data$Cluster <- as.factor(mc_result$classification)
 
 # 集団ごとに色分けしたヒストグラムを描いて確認
 ggplot(data = my_data, aes(x = angle, fill = Cluster)) +
-  geom_histogram(color = "black", alpha = 0.7, bins = 30, position = "identity") +
+  geom_histogram(color = "black", alpha = 0.7, breaks = seq(50, 90, by = 2.5), position = "identity") +
   labs(
-    title = "交差角度のヒストグラム（推定された集団ごとの色分け）",
     x = "交差角度",
     y = "度数"
   ) +
