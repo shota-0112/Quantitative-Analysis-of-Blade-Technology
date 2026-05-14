@@ -16,6 +16,7 @@ filtered_data <- subset(my_data, number >= 156 & number <= 357)
 ggplot(data = filtered_data, aes(x = angle)) +
   geom_histogram(aes(y = after_stat(count / sum(count))), breaks = seq(30, 90, by = 2.5), fill = "orange", color = "black") +
   scale_x_continuous(breaks = seq(30, 90, by = 5)) +
+  scale_y_continuous(limits = c(0,0.25), breaks = seq(0,0.25, by = 0.05)) +
   labs(x = "交差角度", y = "相対度数") +
   theme_minimal() +
   theme(
