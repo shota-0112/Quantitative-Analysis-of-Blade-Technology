@@ -1,0 +1,50 @@
+# 必要なライブラリの読み込み
+library(ggplot2)
+library(showtext)
+
+font_add("my_meiryo", "meiryo.ttc")
+showtext_auto()
+
+# 1. データの読み込み
+# Windowsのパス指定のため、バックスラッシュをスラッシュに置換、またはダブルバックスラッシュにする必要があります
+file_path <- "C:/Users/iwash/OneDrive/デスクトップ/修士論文/bladelist_for_R.csv"
+df <- read.csv(file_path)
+
+# 2. 層（Group）の定義
+# numberが1〜77を「Ⅸ層」、78〜121を「Ⅹ層」とする
+df$Group <- ifelse(df$number >= 1 & df$number <= 155, "Ⅸ層",
+                   ifelse(df$number >= 156 & df$number <= 357, "Ⅹ層", NA))
+
+# 欠損値（範囲外のnumber）を除外
+df <- na.omit(df[c("angle", "Group")])
+
+# 3. グラフの並び順を固定（Ⅸ層を左、Ⅹ層を右）
+df$Group <- factor(df$Group, levels = c("Ⅸ層", "Ⅹ層"))
+
+# 4. ggplot2による箱ひげ図の作成
+p <- ggplot(df, aes(x = Group, y = angle, fill = Group)) +
+  stat_boxplot(geom = "errorbar", width = 0.2) +
+  geom_boxplot(width = 0.5, outlier.shape = 1) +
+  # 平均値を「×」で表示 (shape=4 が ×印)
+  stat_summary(fun = mean, geom = "point", shape = 4, size = 3, color = "black") +
+  # y軸の範囲を50-90、5度刻みに設定
+  scale_y_continuous(limits = c(30, 90), breaks = seq(30, 90, by = 5)) +
+  # 色の指定
+  scale_fill_manual(values = c("Ⅸ層" = "skyblue", "Ⅹ層" = "orange")) +
+  # 凡例の見た目を長方形に変更
+  guides(fill = guide_legend(override.aes = list(linetype = 0, shape = NA))) +
+  # ラベルの設定
+  labs(x = "layer",
+       y = "angle",
+  ) +
+  # テーマと凡例の位置調整
+  theme_minimal() +
+  theme(
+    aspect.ratio=1.2,
+    axis.title.x = element_text(margin = margin(t = 10), size = 12),
+    axis.title.y = element_text(margin = margin(r = 10), size = 12),
+    text = element_text(family = "my_meiryo"),
+  )
+
+# 5. 図の表示
+print(p)
