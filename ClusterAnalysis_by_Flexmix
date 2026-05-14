@@ -59,16 +59,33 @@ print(best_model)
 # （後続のコードで使えるよう列名を「Cluster」にしています）
 my_data$Cluster <- as.factor(clusters(best_model))
 
+# ==========================================
+# クラスター番号の並び替え（平均値が小さい順に1, 2...とする）
+# ==========================================
+# 1. 各クラスターの平均値を計算
+cluster_means <- my_data %>%
+  group_by(Cluster) %>%
+  summarise(mean_val = mean(angle)) %>%
+  arrange(mean_val) # 平均値が小さい順に並べる
+
+# 2. 小さい順のクラスター番号に対応表を作る
+# 例: 平均が一番小さい元のClusterが「2」なら、新しい番号は「1」
+new_levels <- cluster_means$Cluster
+
+# 3. データのクラスター番号を並び替える
+my_data$Cluster <- factor(my_data$Cluster, levels = new_levels)
+levels(my_data$Cluster) <- 1:length(new_levels) # ラベルを1, 2, ...に書き換え
+
 # 集団ごとに色分けしたヒストグラムを描いて確認
 ggplot(data = my_data, aes(x = angle, fill = Cluster)) +
   geom_histogram(color = "black", alpha = 0.7, breaks = seq(30, 90, by = 2.5), position = "identity") +
+  scale_x_continuous(breaks = seq(30, 90, by = 5)) +
+  scale_y_continuous(breaks = seq(0, 70,by = 5)) +  
   labs(
-    title = "交差角度のヒストグラム（EIC基準で推定された集団）",
     x = "交差角度",
     y = "度数",
-    fill = "クラスター"
+    fill = "Cluster"
   ) +
-  scale_x_continuous(breaks = seq(30, 90, by = 5)) +
   theme_minimal() +
   theme(
     text = element_text(family = "my_meiryo"),
@@ -85,8 +102,8 @@ ggplot(data = my_data, aes(x = angle, fill = Cluster)) +
 my_data <- my_data %>%
   mutate(
     Group = case_when(
-      number >= 1 & number <= 155   ~ "Ⅸ層 (No.1〜155)",
-      number >= 156 & number <= 357 ~ "Ⅹ層 (No.156〜357)",  
+      number >= 1 & number <= 155   ~ "Ⅸ層",
+      number >= 156 & number <= 357 ~ "Ⅹ層",  
       TRUE                          ~ "その他"
     )
   ) %>%
@@ -105,6 +122,22 @@ print(cross_table)
 cat("\n【層ごとのクラスター構成割合（行ごとの％）】\n")
 print(prop.table(cross_table, margin = 1) * 100)
 
+# ==========================================
+# クラスター番号の並び替え（平均値が小さい順に1, 2...とする）
+# ==========================================
+# 1. 各クラスターの平均値を計算
+cluster_means <- my_data %>%
+  group_by(Cluster) %>%
+  summarise(mean_val = mean(angle)) %>%
+  arrange(mean_val) # 平均値が小さい順に並べる
+
+# 2. 小さい順のクラスター番号に対応表を作る
+# 例: 平均が一番小さい元のClusterが「2」なら、新しい番号は「1」
+new_levels <- cluster_means$Cluster
+
+# 3. データのクラスター番号を並び替える
+my_data$Cluster <- factor(my_data$Cluster, levels = new_levels)
+levels(my_data$Cluster) <- 1:length(new_levels) # ラベルを1, 2, ...に書き換え
 
 # ==========================================
 # 視覚化: 積み上げ棒グラフによる構成比の比較
@@ -113,10 +146,9 @@ ggplot(data = my_data, aes(x = Group, fill = Cluster)) +
   geom_bar(position = "fill", color = "black", alpha = 0.8, width = 0.4) +
   scale_y_continuous(labels = scales::percent) +
   labs(
-    title = "各層における交差角度クラスターの構成比",
-    x = "段階",
-    y = "割合",
-    fill = "クラスター"
+    x = "layer",
+    y = "ratio",
+    fill = "Cluster"
   ) +
   theme_minimal() +
   theme(
