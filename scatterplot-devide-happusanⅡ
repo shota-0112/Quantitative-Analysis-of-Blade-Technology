@@ -1,0 +1,83 @@
+# 必要なライブラリの読み込み
+library(ggplot2)
+library(showtext) 
+# 分類用のdplyrライブラリを追加 (case_when用)
+library(dplyr)
+
+# フォント登録
+# meiryo.ttc がシステムに見つからない場合は、パスを直接指定するか、
+# 他の日本語フォント（例: "MS Mincho" など）を使用してください。
+font_add("my_meiryo", "meiryo.ttc")
+showtext_auto()
+
+# 1. データの読み込み
+# ユーザーの元のパスをそのまま使用しています
+file_path <- "E:/修士論文HDD/bladelist_for_R.csv"
+df <- read.csv(file_path)
+
+# 2. プロット用の詳細なグループ定義を作成
+# number に基づいて 3つのグループを作成します。
+df <- df %>%
+  mutate(PlotGroup = case_when(
+    number >= 1   & number <= 155 ~ "Ⅸ層", # 元のⅨ層
+    number >= 156 & number <= 199 ~ "Ⅹ層", # Ⅹ層の一部
+    # ユーザーの要望に合わせてラベル名を変更
+    number >= 200 & number <= 357 ~ "八風山Ⅱ遺跡"
+    TRUE ~ "Other" # 予期せぬデータ用
+  ))
+
+# NAの削除と順序設定 (factor化)
+df <- na.omit(df)
+# 凡例での表示順序を定義
+df$PlotGroup <- factor(df$PlotGroup, levels = c("Ⅸ層", "Ⅹ層 (156-199)", "Ⅹ層 (200-357 黒枠空白)"))
+
+# --- ① 散布図の作成 (0から開始するように修正) ---
+# ggplotの aes マッピングを変更
+# 今回は枠線(color)と塗りつぶし(fill)を使い分けるため、両方をPlotGroupにマッピングします。
+p1 <- ggplot(df, aes(x = width, y = length, 
+                     color = PlotGroup, 
+                     fill = PlotGroup, 
+                     shape = PlotGroup)) +
+  # 点を描画。サイズを少し大きく（1.2）して枠線を見やすくしています。
+  geom_point(size = 1.2) +
+  
+  # 【変更箇所】形状の指定 (塗りつぶしと枠線がある形状に変更)
+  # 24: 上向き三角形（枠線あり）, 21: 丸（枠線あり）
+  scale_shape_manual(values = c("Ⅸ層" = 24, 
+                                "Ⅹ層 (156-199)" = 21, 
+                                "Ⅹ層 (200-357 黒枠空白)" = 21)) +
+  
+  # 【変更箇所】枠線（color）の色の指定
+  # Ⅸ層とⅩ層(156-199)は従来通り。対象グループは「黒(black)」に指定。
+  scale_color_manual(values = c("Ⅸ層" = "skyblue", 
+                                "Ⅹ層 (156-199)" = "orange", 
+                                "Ⅹ層 (200-357 黒枠空白)" = "black")) +
+  
+  # 【変更箇所】中身の塗りつぶし（fill）の色の指定
+  # Ⅸ層とⅩ層(156-199)は枠線と同じ色で塗りつぶす。
+  # 対象グループは「空白（白: white）」に指定。
+  scale_fill_manual(values = c("Ⅸ層" = "skyblue", 
+                               "Ⅹ層 (156-199)" = "orange", 
+                               "Ⅹ層 (200-357 黒枠空白)" = "white")) +
+  
+  # 軸の範囲設定（変更なし）
+  scale_x_continuous(limits = c(0, 70), breaks = seq(0, 70, by = 10), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0, 160), breaks = seq(0, 160, by = 10), expand = c(0, 0)) +
+  
+  coord_fixed(ratio = 1) + 
+  
+  # 凡例ラベルのタイトルを変更
+  # color, fill, shape すべての凡例を統合するため、すべて同じ名前（またはNULL）にする必要があります。
+  labs(x = "width(mm)",
+       y = "length(mm)",
+       color = "Group / 層", fill = "Group / 層", shape = "Group / 層") + 
+  theme_minimal() +
+  theme(
+    legend.position = "right",
+    axis.title.x = element_text(margin = margin(t = 15)),
+    axis.title.y = element_text(margin = margin(r = 15)),
+    text = element_text(family = "my_meiryo"),
+    panel.grid.minor = element_blank()
+  )
+
+print(p1)
