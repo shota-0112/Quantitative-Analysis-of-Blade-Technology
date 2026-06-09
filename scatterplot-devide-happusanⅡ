@@ -29,7 +29,7 @@ df <- df %>%
 # NAの削除と順序設定 (factor化)
 df <- na.omit(df)
 # 凡例での表示順序を定義
-df$PlotGroup <- factor(df$PlotGroup, levels = c("Ⅸ層", "Ⅹ層 (156-199)", "Ⅹ層 (200-357 黒枠空白)"))
+df$PlotGroup <- factor(df$PlotGroup, levels = c("Ⅸ層", "Ⅹ層", "八風山Ⅱ遺跡"))
 
 # --- ① 散布図の作成 (0から開始するように修正) ---
 # ggplotの aes マッピングを変更
@@ -44,21 +44,21 @@ p1 <- ggplot(df, aes(x = width, y = length,
   # 【変更箇所】形状の指定 (塗りつぶしと枠線がある形状に変更)
   # 24: 上向き三角形（枠線あり）, 21: 丸（枠線あり）
   scale_shape_manual(values = c("Ⅸ層" = 24, 
-                                "Ⅹ層 (156-199)" = 21, 
-                                "Ⅹ層 (200-357 黒枠空白)" = 21)) +
+                                "Ⅹ層" = 21, 
+                                "八風山Ⅱ遺跡" = 21)) +
   
   # 【変更箇所】枠線（color）の色の指定
   # Ⅸ層とⅩ層(156-199)は従来通り。対象グループは「黒(black)」に指定。
   scale_color_manual(values = c("Ⅸ層" = "skyblue", 
-                                "Ⅹ層 (156-199)" = "orange", 
-                                "Ⅹ層 (200-357 黒枠空白)" = "black")) +
+                                "Ⅹ層" = "orange", 
+                                "八風山Ⅱ遺跡" = "black")) +
   
   # 【変更箇所】中身の塗りつぶし（fill）の色の指定
   # Ⅸ層とⅩ層(156-199)は枠線と同じ色で塗りつぶす。
   # 対象グループは「空白（白: white）」に指定。
   scale_fill_manual(values = c("Ⅸ層" = "skyblue", 
-                               "Ⅹ層 (156-199)" = "orange", 
-                               "Ⅹ層 (200-357 黒枠空白)" = "white")) +
+                               "Ⅹ層" = "orange", 
+                               "八風山Ⅱ遺跡" = "white")) +
   
   # 軸の範囲設定（変更なし）
   scale_x_continuous(limits = c(0, 70), breaks = seq(0, 70, by = 10), expand = c(0, 0)) +
@@ -70,7 +70,7 @@ p1 <- ggplot(df, aes(x = width, y = length,
   # color, fill, shape すべての凡例を統合するため、すべて同じ名前（またはNULL）にする必要があります。
   labs(x = "width(mm)",
        y = "length(mm)",
-       color = "Group / 層", fill = "Group / 層", shape = "Group / 層") + 
+       color = "Group", fill = "Group", shape = "Group") + 
   theme_minimal() +
   theme(
     legend.position = "right",
