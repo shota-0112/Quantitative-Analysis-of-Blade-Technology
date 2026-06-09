@@ -22,7 +22,7 @@ df <- df %>%
     number >= 1   & number <= 155 ~ "Ⅸ層", # 元のⅨ層
     number >= 156 & number <= 199 ~ "Ⅹ層", # Ⅹ層の一部
     # ユーザーの要望に合わせてラベル名を変更
-    number >= 200 & number <= 357 ~ "八風山Ⅱ遺跡"
+    number >= 200 & number <= 357 ~ "八風山Ⅱ遺跡",
     TRUE ~ "Other" # 予期せぬデータ用
   ))
 
