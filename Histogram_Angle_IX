@@ -15,7 +15,8 @@ filtered_data <- subset(my_data, number >= 1 & number <= 155)
 # 4. グラフの描画
 ggplot(data = filtered_data, aes(x = angle)) +
   geom_histogram(aes(y = after_stat(count / sum(count))), breaks = seq(30, 90, by = 2.5), fill = "skyblue", color = "black") +
-  scale_x_continuous(breaks = seq(30, 90, by = 5)) +
+  scale_x_continuous(breaks = seq(30, 90, by = 5), expand = c(0, 0)) +
+  scale_y_continuous(breaks = seq(0, 0.30, by = 0.05), expand = expansion(mult = c(0, 0.1)) )+  
   labs(x = "交差角度", y = "相対度数") +
   theme_minimal() +
   theme(
